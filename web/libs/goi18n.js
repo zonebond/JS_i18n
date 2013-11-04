@@ -128,7 +128,7 @@
     {
         var part = lang.split('-')
         var iso$ = part[0].toLowerCase() + "-" + part[1].toUpperCase();
-        return "../i18n/" + iso$ + ".properties";
+        return "/i18n/" + iso$ + ".properties";
     }
 
     function onload_handler()
