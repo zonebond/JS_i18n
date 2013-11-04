@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zn-CN">
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="libs/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css" media="screen">
+    <style>
+        body{
+            font-family: "Microsoft Yahei";
+            font-size: 18px;
+        }
+        .top-spacer-5
+        {
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body language="en-US">
+    <div class="container top-spacer-5">
+        <div class="row col-lg-12">
+            <div class="text-success col-md-10">
+                <label class="btn-block text-info">在标签元素中用法：</label><br>
+                1.在标签内加入" <label class="text-danger">i18n="[  ]"</label> "的属性。<br>
+                2.值书写方法" <label class="text-danger">text:key</label> "
+                <label class="text-danger">text</label>为要对本元素的哪个属性进行转换，<label class="text-danger">key</label> 为语言集合中对应的建，
+                它们中间使用<label class="text-danger">" : "</label>号连接<br>
+                可选的属性与HtmlDOM元素的属性相同如：value, title, type...等 (还可用<label class="text-danger">i18n="[key]"</label>默认为"text"属性)<br>
+                3.要对一个元素进行多个转换它们中间使用<label class="text-danger">" ； "</label>号连接。
+                如：<label class="text-primary">&ltlabel i18n="text:key4<label class="text-danger">;</label>title:key1"&gt</label><br>
+            </div>
+            <div class="btn-group col-md-2">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    <a class="text-left" i18n="text:key8">Action</a> <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="#" i18n="en">Action</a></li>
+                    <li><a href="#" i18n="zh">Another action</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="text-primary">【实例】:</div>
+        <ul>
+            <li>
+                <div i18n="key1"></div>
+                <div class="btn btn-info">i18n="key1"</div>
+            </li>
+            <br>
+            <li>
+                <div i18n="key2"></div>
+                <div class="btn btn-info">i18n="text:key2"</div>
+            </li>
+            <br>
+            <li>
+                <input i18n="value:key3" type="button" onclick="btn_click()"/><br>
+                <div class="btn btn-info">i18n="value:key3"</div>
+            </li>
+            <br>
+            <li>
+                <label i18n="text:key4;title:key1" title=""></label>
+                <br><div class="btn btn-info">i18n="text:key4;title:key1"</div>
+            </li>
+            <br>
+            <li>
+                <input i18n="value:key5" type="text">
+                <br><div class="btn btn-info">input标签 i18n="value:key5"</div>
+            </li>
+            <br>
+            <li>
+                <label i18n="key6" class="label label-danger"></label>
+                <br><div class="btn btn-info">任意标签 i18n="key6"</div>
+            </li>
+            <br>
+            <li>
+                <button i18n="key7" class="btn btn-warning" type="button"></button>
+            </li><div class="btn btn-info">任意标签（会覆盖自身） i18n="-:key7"</div>
+        </ul>
+        <div class="container">
+            <button class="btn btn-primary span3" i18n="reload" onclick="btn_reload()"></button>
+            <button class="btn btn-primary span3" i18n="en" onclick="btn_set_language('en-US')"></button>
+            <button class="btn btn-primary span3" i18n="zh" onclick="btn_set_language('zh-CN')"></button>
+        </div>
+    </div>
+
+<script src="/libs/jquery-2.0.3.js"></script>
+<script src="/libs/goi18n.js"></script>
+<script src="/libs/bootstrap/js/bootstrap.js"></script>
+<script>
+    function btn_click()
+    {
+        alert($i18n.loc("key4"));
+    }
+
+    function btn_reload()
+    {
+        $i18n.reload();
+    }
+
+
+    function btn_set_language(lang)
+    {
+        $i18n.setLanguage(lang)
+    }
+
+</script>
+</body>
+</html>
