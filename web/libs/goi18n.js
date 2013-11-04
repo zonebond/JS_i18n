@@ -25,9 +25,8 @@
     }
 
     //ready for load language properties file
-    var loader;
-
-    function load_language_file(url)
+    var loader, lang_tag;
+    function load_language_file(url, tag)
     {
         loader = null;
         if (window.XMLHttpRequest) // code for all new browsers
@@ -40,8 +39,10 @@
         }
         if (loader != null)
         {
+            lang_tag = tag;
             loader.onreadystatechange = state_change_handler;
             loader.open("GET", url, false);
+            loader.setRequestHeader("Date", "0");
             loader.setRequestHeader("If-Modified-Since", "0");
             loader.send();
         }
@@ -61,8 +62,11 @@
                 {
                     languages = {};
                 }
-                languages[current_lang] = file_to_properties(loader.responseText);
-                language_parser();
+                languages[lang_tag] = file_to_properties(loader.responseText);
+                if(lang_tag == current_lang)
+                {
+                    language_parser();
+                }
             }
             else
             {
@@ -128,14 +132,15 @@
     {
         var part = lang.split('-')
         var iso$ = part[0].toLowerCase() + "-" + part[1].toUpperCase();
-        return "/i18n/" + iso$ + ".properties";
+        var appname = location.pathname.split('/');
+        return (appname[1] ? "/" + appname[1] : "") + "/i18n/" + iso$ + ".properties";
     }
 
     function onload_handler()
     {
         current_lang = get_current_lang();
         langURL = get_language_file_url(current_lang);
-        load_language_file(langURL);
+        load_language_file(langURL, current_lang);
 
         //确保在其它目标(exp:onpageshow)事件之前触发
         trigger_init_handlers();
@@ -198,7 +203,7 @@
         if(!languages[current_lang])
         {
             langURL = get_language_file_url(current_lang);
-            load_language_file(langURL)
+            load_language_file(langURL, current_lang)
         }
         else
         {
@@ -221,7 +226,7 @@
             for(var lang in languages)
             {
                 url = get_language_file_url(lang);
-                load_language_file(url);
+                load_language_file(url, lang);
             }
         }
     }
