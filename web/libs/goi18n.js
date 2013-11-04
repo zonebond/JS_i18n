@@ -25,10 +25,9 @@
     }
 
     //ready for load language properties file
-    var loader, lang_tag;
-    function load_language_file(url, tag)
+    function load_language_file(url, tag, callback_func)
     {
-        loader = null;
+        var loader;
         if (window.XMLHttpRequest) // code for all new browsers
         {
             loader = new XMLHttpRequest();
@@ -39,10 +38,26 @@
         }
         if (loader != null)
         {
-            lang_tag = tag;
-            loader.onreadystatechange = state_change_handler;
+            loader.onreadystatechange = function(){
+                if (loader.readyState == 4) // 4 = "loaded"
+                {
+                    if (loader.status == 200) // 200 = OK
+                    {
+                        state_change_handler(tag, loader.responseText);
+                        try
+                        {
+                            callback_func.call(null);
+                        }
+                        catch (e){}
+                        loader = null;
+                    }
+                    else
+                    {
+                        alert("Problem retrieving XML data");
+                    }
+                }
+            };
             loader.open("GET", url, false);
-            loader.setRequestHeader("Date", "0");
             loader.setRequestHeader("If-Modified-Since", "0");
             loader.send();
         }
@@ -52,26 +67,26 @@
         }
     }
 
-    function state_change_handler()
+    function state_change_handler(tag, lang_text)
     {
-        if (loader.readyState == 4) // 4 = "loaded"
+        if(!languages)
         {
-            if (loader.status == 200) // 200 = OK
-            {
-                if(!languages)
-                {
-                    languages = {};
-                }
-                languages[lang_tag] = file_to_properties(loader.responseText);
-                if(lang_tag == current_lang)
-                {
-                    language_parser();
-                }
-            }
-            else
-            {
-                alert("Problem retrieving XML data");
-            }
+            languages = {};
+        }
+        languages[tag] = file_to_properties(lang_text);
+    }
+
+    function transform(be_translate, handle)
+    {
+        if(!be_translate || be_translate.length == 0)
+        {
+            return;
+        }
+        var item, i;
+        for(i = 0; i < be_translate.length; i++)
+        {
+            item = $(be_translate[i]);
+            handle.call(this, item);
         }
     }
 
@@ -114,20 +129,6 @@
         });
     }
 
-    function transform(be_translate, handle)
-    {
-        if(!be_translate || be_translate.length == 0)
-        {
-            return;
-        }
-        var item, i;
-        for(i = 0; i < be_translate.length; i++)
-        {
-            item = $(be_translate[i]);
-            handle.call(this, item);
-        }
-    }
-
     function get_language_file_url(lang)
     {
         var part = lang.split('-')
@@ -136,11 +137,10 @@
         return (appname[1] ? "/" + appname[1] : "") + "/i18n/" + iso$ + ".properties";
     }
 
+    var be_wait = false;
     function onload_handler()
     {
-        current_lang = get_current_lang();
-        langURL = get_language_file_url(current_lang);
-        load_language_file(langURL, current_lang);
+        language_parser();
 
         //确保在其它目标(exp:onpageshow)事件之前触发
         trigger_init_handlers();
@@ -157,7 +157,8 @@
 
     function get_current_lang()
     {
-        var dom_lang = document.body.getAttribute("language");
+        var html = document.all[0];
+        var dom_lang = html ? html.lang : null;
         if(dom_lang)
         {
             return dom_lang;
@@ -203,7 +204,7 @@
         if(!languages[current_lang])
         {
             langURL = get_language_file_url(current_lang);
-            load_language_file(langURL, current_lang)
+            load_language_file(langURL, current_lang, language_parser);
         }
         else
         {
@@ -226,9 +227,17 @@
             for(var lang in languages)
             {
                 url = get_language_file_url(lang);
-                load_language_file(url, lang);
+                if(lang == current_lang)
+                {
+                    load_language_file(url, lang, language_parser);
+                }
             }
         }
     }
+
+    //load language source
+    current_lang = get_current_lang();
+    langURL = get_language_file_url(current_lang);
+    load_language_file(langURL, current_lang);
 
 })(window);
