@@ -165,19 +165,34 @@
         }
         else
         {
-            return navigator.language;
+            return navigator.language ? navigator.language : navigator.userLanguage;
         }
     }
 
     function file_to_properties(properties)
     {
-        var items, i, item, mapset = {}, key, val;
-        items = properties.split('\n');
+        var items, i, item, mapset = {}, key, val, sp;
+        items = properties.split('\r\n');
         for(i = 0; i < items.length; i++)
         {
-            item = items[i].split('=');
-            key = item[0];
-            val = item[1];
+            item = items[i];
+            if(!item || item.trim() == "")
+            {
+                continue;
+            }
+            item = item.trim();
+            sp = item[0];
+            if(sp == '/' || sp == '#')
+            {
+                continue;
+            }
+            sp = item.indexOf("=");
+            if(sp == -1)
+            {
+                continue;
+            }
+            key = item.substr(0, sp);
+            val = item.substr(++sp);
             mapset[key] = val;
         }
 
