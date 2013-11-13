@@ -5,6 +5,12 @@
 
 (function(win){
 
+    if(!String.prototype.trim) {
+        String.prototype.trim = function () {
+            return this.replace(/^\s+|\s+$/g,'');
+        };
+    }
+
     var handle, current_lang, langURL, languages;
 
     //inject dom init handlers
