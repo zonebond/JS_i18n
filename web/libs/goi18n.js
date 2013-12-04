@@ -108,7 +108,8 @@
         var be_translate = $("[i18n]");
 
         //attribute = i18n;
-        transform(be_translate, function(item){
+        transform(be_translate, function(item)
+        {
             var opts, opt, tag, key, val, i;
             opts = item.attr("i18n").split(';');
             for(i = 0; i < opts.length; i++)
@@ -197,8 +198,8 @@
             {
                 continue;
             }
-            key = item.substr(0, sp);
-            val = item.substr(++sp);
+            key = item.substr(0, sp).trim();
+            val = item.substr(++sp).trim();
             mapset[key] = val;
         }
 
