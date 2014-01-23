@@ -11,7 +11,7 @@
         };
     }
 
-    var handle, current_lang, langURL, languages;
+    var handle, current_lang, langURL, languages, reloaded = false;
 
     //inject dom init handlers
     handle = win.onload;
@@ -28,6 +28,18 @@
         {
             init_handlers[i].call(this, null);
         }
+    }
+
+    function loadi18nLanguage()
+    {
+        if(reloaded)
+        {
+            alert("Load language error or Language file is not exist !")
+        }
+        reloaded = true;
+        current_lang = 'en-US';
+        langURL = get_language_file_url(current_lang);
+        load_language_file(langURL, current_lang);
     }
 
     //ready for load language properties file
@@ -59,7 +71,7 @@
                     }
                     else
                     {
-                        alert("Problem retrieving XML data");
+                        loadi18nLanguage();
                     }
                 }
             };
@@ -139,7 +151,7 @@
     function get_language_file_url(lang)
     {
         var part = lang.split('-')
-        var iso$ = part[0].toLowerCase() + "-" + part[1].toUpperCase();
+        var iso$ = part[0].toLowerCase() + (part[1] ? "-" + part[1].toUpperCase() : "");
         var appname = location.pathname.split('/');
         return (appname[1] ? "/" + appname[1] : "") + "/i18n/" + iso$ + ".properties";
     }
@@ -172,7 +184,7 @@
         }
         else
         {
-            return navigator.language ? navigator.language : navigator.userLanguage;
+            return navigator.language ? navigator.language : navigator.browserLanguage;
         }
     }
 
