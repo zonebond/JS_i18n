@@ -30,11 +30,14 @@
         }
     }
 
+	var message_count = 1;
     function loadi18nLanguage()
     {
-        if(reloaded)
+        if(reloaded && message_count > 0)
         {
-            alert("Load language error or Language file is not exist !")
+			message_count--;
+            alert("Load language error or Language file is not exist !");
+			return;
         }
         reloaded = true;
         current_lang = 'en-US';
@@ -103,7 +106,7 @@
         var item, i;
         for(i = 0; i < be_translate.length; i++)
         {
-            item = $(be_translate[i]);
+            item = be_translate[i];
             handle.call(this, item);
         }
     }
@@ -117,13 +120,13 @@
         }
 
         var lang_properties = languages[current_lang];
-        var be_translate = $("[i18n]");
+        var be_translate = document.querySelectorAll("[i18n]");
 
         //attribute = i18n;
         transform(be_translate, function(item)
         {
             var opts, opt, tag, key, val, i;
-            opts = item.attr("i18n").split(';');
+            opts = item.getAttribute("i18n").split(';');
             for(i = 0; i < opts.length; i++)
             {
                 opt = opts[i].split(':');
@@ -134,15 +137,15 @@
 
                 if(tag == "text")
                 {
-                    item.text(val);
+                    item.innerHTML = val;
                 }
                 else if(tag == "-")
                 {
-                    item.parent().text(val);
+                    item.outerHTML = val;
                 }
                 else
                 {
-                    item.attr(tag, val);
+                    item.setAttribute(tag, val);
                 }
             }
         });
@@ -152,8 +155,26 @@
     {
         var part = lang.split('-')
         var iso$ = part[0].toLowerCase() + (part[1] ? "-" + part[1].toUpperCase() : "");
-        var appname = location.pathname.split('/');
-        return (appname[1] ? "/" + appname[1] : "") + "/i18n/" + iso$ + ".properties";
+
+		var href = location.pathname.split("/");
+        var path = "/" + (href[1] ? href[1] : "") + "/i18n";
+
+        var scripts = document.scripts;
+        for(var i = 0; i < scripts.length; i++)
+        {
+            var script = scripts[i];
+            if(script.src.indexOf('goi18n.js') == -1)
+            {
+                continue;
+            }
+
+            if(script.attributes['path'])
+            {
+                path = script.attributes['path'].value;
+            }
+        }
+
+        return path + "/" + iso$ + ".properties";
     }
 
     var be_wait = false;
