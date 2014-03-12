@@ -11,17 +11,92 @@
         };
     }
 
-    var handle, current_lang, langURL, languages, reloaded = false;
+    var init_handlers = [], handle, current_lang, langURL, languages, reloaded = false, doc = document, UNDEF = "undefined", is_dom_loaded = false;
+
+    function addLoadEvent(fn) {
+        if (typeof win.addEventListener != UNDEF) {
+            win.addEventListener("load", fn, false);
+        }
+        else if (typeof doc.addEventListener != UNDEF) {
+            doc.addEventListener("load", fn, false);
+        }
+        else if (typeof win.attachEvent != UNDEF) {
+            addListener(win, "onload", fn);
+        }
+        else if (typeof win.onload == "function") {
+            var fnOld = win.onload;
+            win.onload = function() {
+                fnOld();
+                fn();
+            };
+        }
+        else {
+            win.onload = fn;
+        }
+    }
 
     //inject dom init handlers
-    handle = win.onload;
-    if(handle)
+    var on_dom_load = function()
     {
-        init_handlers.push(handle);
-    }
-    win.onload = onload_handler;
+        if((typeof doc.readyState != UNDEF && doc.readyState == "complete") || (typeof doc.readyState == UNDEF && (doc.getElementsByTagName('body')[0] || doc.body)))
+        {
+            dom_loaded_function();
+        }
+        if(!is_dom_loaded)
+        {
+            if (typeof doc.addEventListener != UNDEF)
+            {
+                doc.addEventListener("DOMContentLoaded", dom_loaded_function, false);
+            }
+            else
+            {
+                doc.attachEvent("onreadystatechange", function()
+                {
+                    if (doc.readyState == "complete")
+                    {
+                        doc.detachEvent("onreadystatechange", arguments.callee);
+                        dom_loaded_function();
+                    }
+                });
+                if (win == top)
+                {
+                    (function(){
+                        if (is_dom_loaded) { return; }
+                        try
+                        {
+                            doc.documentElement.doScroll("left");
+                        }
+                        catch(e) {
+                            setTimeout(arguments.callee, 0);
+                            return;
+                        }
+                        dom_loaded_function();
+                    })();
+                }
+            }
+            addLoadEvent(dom_loaded_function);
+        }
+    }();
 
-    var init_handlers = [];
+    function dom_loaded_function()
+    {
+        if (is_dom_loaded)
+        {
+            return;
+        }
+
+        is_dom_loaded = true;
+        handle = win.onload;
+        win.onload = null;
+
+        if(handle)
+        {
+            init_handlers.push(handle);
+        }
+
+        onload_handler();
+    }
+
     function trigger_init_handlers()
     {
         for(var i = 0; i < init_handlers.length; i++)
@@ -114,6 +189,8 @@
     //language parser
     function language_parser()
     {
+        win.$i18n.isparsered = true;
+
         if(!has_lang_loaded(current_lang))
         {
             return;
@@ -270,6 +347,10 @@
     win.$i18n = {
         loc:function(key)
         {
+            if(!win.$i18n.isparsered)
+            {
+                language_parser();
+            }
             return getString.call(this, key);
         },
         setLanguage:function(lang)
@@ -287,6 +368,10 @@
                     load_language_file(url, lang, language_parser);
                 }
             }
+        },
+        render:function()
+        {
+            language_parser();
         }
     }
 
