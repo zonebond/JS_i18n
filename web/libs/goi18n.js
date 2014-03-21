@@ -197,7 +197,7 @@
         }
 
         var lang_properties = languages[current_lang];
-        var be_translate = document.querySelectorAll("[i18n]");
+        var be_translate = doc.querySelectorAll("[i18n]");
 
         //attribute = i18n;
         transform(be_translate, function(item)
@@ -233,23 +233,9 @@
         var part = lang.split('-')
         var iso$ = part[0].toLowerCase() + (part[1] ? "-" + part[1].toUpperCase() : "");
 
+        var attr = script.getAttribute('path');
 		var href = location.pathname.split("/");
-        var path = "/" + (href[1] ? href[1] : "") + "/i18n";
-
-        var scripts = document.scripts;
-        for(var i = 0; i < scripts.length; i++)
-        {
-            var script = scripts[i];
-            if(script.src.indexOf('goi18n.js') == -1)
-            {
-                continue;
-            }
-
-            if(script.attributes['path'])
-            {
-                path = script.attributes['path'].value;
-            }
-        }
+        var path = (!attr || attr == "") ? "/" + (href[1] ? href[1] : "") + "/i18n" : attr;
 
         return path + "/" + iso$ + ".properties";
     }
@@ -274,7 +260,7 @@
 
     function get_current_lang()
     {
-        var html = document.all[0];
+        var html = doc.all[0];
         var dom_lang = html ? html.lang : null;
         if(dom_lang)
         {
@@ -375,9 +361,23 @@
         }
     }
 
-    //load language source
-    current_lang = get_current_lang();
-    langURL = get_language_file_url(current_lang);
-    load_language_file(langURL, current_lang);
+    var scripts = doc.scripts;
+    for(var i = 0; i < scripts.length; i++)
+    {
+        var script = scripts[i];
+        var src = script.src;
+        if(src.indexOf('goi18n.js') != -1 || src.indexOf('goi18n.min.js') != -1)
+        {
+            $i18n.script = script;
+            //load language source
+            current_lang = get_current_lang();
+            langURL = get_language_file_url(current_lang);
+            load_language_file(langURL, current_lang);
+
+            break;
+        }
+    }
+
+
 
 })(window);
