@@ -21,7 +21,7 @@
             doc.addEventListener("load", fn, false);
         }
         else if (typeof win.attachEvent != UNDEF) {
-            addListener(win, "onload", fn);
+            win.attachEvent("onload", fn);
         }
         else if (typeof win.onload == "function") {
             var fnOld = win.onload;
