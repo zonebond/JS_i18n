@@ -40,13 +40,13 @@
     {
         if((typeof doc.readyState != UNDEF && doc.readyState == "complete") || (typeof doc.readyState == UNDEF && (doc.getElementsByTagName('body')[0] || doc.body)))
         {
-            dom_loaded_function();
+            on_dom_loaded_function();
         }
         if(!is_dom_loaded)
         {
             if (typeof doc.addEventListener != UNDEF)
             {
-                doc.addEventListener("DOMContentLoaded", dom_loaded_function, false);
+                doc.addEventListener("DOMContentLoaded", on_dom_loaded_function, false);
             }
             else
             {
@@ -55,7 +55,7 @@
                     if (doc.readyState == "complete")
                     {
                         doc.detachEvent("onreadystatechange", arguments.callee);
-                        dom_loaded_function();
+                        on_dom_loaded_function();
                     }
                 });
                 if (win == top)
@@ -70,15 +70,15 @@
                             setTimeout(arguments.callee, 0);
                             return;
                         }
-                        dom_loaded_function();
+                        on_dom_loaded_function();
                     })();
                 }
             }
-            addLoadEvent(dom_loaded_function);
+            addLoadEvent(on_dom_loaded_function);
         }
     }();
 
-    function dom_loaded_function()
+    function on_dom_loaded_function()
     {
         if (is_dom_loaded)
         {
@@ -178,12 +178,77 @@
         {
             return;
         }
+
         var item, i;
         for(i = 0; i < be_translate.length; i++)
         {
             item = be_translate[i];
             handle.call(this, item);
         }
+    }
+
+    function getTranslateObject()
+    {
+        if(doc.querySelectorAll)
+        {
+            return doc.querySelectorAll("[i18n]");
+        }
+        else
+        {
+            return matchElementsByAttr(doc, 'i18n');
+        }
+    }
+
+    function matchFilter(node)
+    {
+        if(!node || node == "")
+        {
+            return true;
+        }
+
+        if(node.nodeName.indexOf('#text') != -1)
+        {
+            return true;
+        }
+
+        if( node.nodeName == 'SCRIPT' ||
+            node.nodeName == 'META')
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    function matchElementsByAttr(context, attr)
+    {
+        if(matchFilter(context))
+        {
+            return null;
+        }
+
+        var matched = [], attrs = context.attributes || [];
+
+        if(attrs.length && attrs.getNamedItem(attr))
+        {
+            matched.push(context);
+        }
+
+        if(context.childNodes.length)
+        {
+            var children = context.childNodes,
+                len = children.length;
+            for(var i = 0; i < len; i++)
+            {
+                var sub_matched = matchElementsByAttr(children[i], attr);
+                if(sub_matched && sub_matched.length)
+                {
+                    matched = matched.concat(sub_matched);
+                }
+            }
+        }
+
+        return matched;
     }
 
     //language parser
@@ -197,7 +262,7 @@
         }
 
         var lang_properties = languages[current_lang];
-        var be_translate = doc.querySelectorAll("[i18n]");
+        var be_translate = getTranslateObject();
 
         //attribute = i18n;
         transform(be_translate, function(item)
@@ -330,6 +395,7 @@
         }
     }
 
+    // attachment feature to windwo
     win.$i18n = {
         loc:function(key)
         {
@@ -373,11 +439,8 @@
             current_lang = get_current_lang();
             langURL = get_language_file_url(current_lang);
             load_language_file(langURL, current_lang);
-
             break;
         }
     }
-
-
 
 })(window);
