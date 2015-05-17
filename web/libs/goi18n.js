@@ -12,6 +12,20 @@
         };
     }
 
+    if(!HTMLElement.prototype.__nativeAppendChild__)
+    {
+        HTMLElement.prototype.__nativeAppendChild__ = HTMLElement.prototype.appendChild;
+        HTMLElement.prototype.appendChild = function()
+        {
+            if ($i18n && (this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9))
+            {
+                try{$i18n.parseDom(arguments[0]); }catch(ex){}
+            }
+
+            return this.__nativeAppendChild__.apply(this, arguments);
+        };
+    }
+
     // International Tool
     var i18n = function()
     {
@@ -292,15 +306,19 @@
 
         return matched;
     };
-    i18n_P.queryElements = function()
+    i18n_P.queryElements = function(node)
     {
-        if(window.document.querySelectorAll)
+        if(node.nodeType == 1 && node.getAttribute('i18n'))
         {
-            return window.document.querySelectorAll("[i18n]");
+            return [node];
+        }
+        else if(node.querySelectorAll)
+        {
+            return node.querySelectorAll("[i18n]");;
         }
         else
         {
-            return this.matchElementsByAttr(window.document, 'i18n');
+            return this.matchElementsByAttr(node, 'i18n');
         }
     };
     i18n_P.translate = function(be_translate, properties, everyFunc)
@@ -343,12 +361,12 @@
             }
         }
     };
-    i18n_P.parseDOMContent = function()
+    i18n_P.parseDOMContent = function(node)
     {
         var langProp = this.LANGUAGES(this.i18nTo());
         if(!langProp) return;
 
-        this.translate(this.queryElements(), langProp, this.elementsTransFunc);
+        this.translate(this.queryElements(node == undefined ? window.document : node), langProp, this.elementsTransFunc);
     };
     i18n_P.loc = function(key, lang)
     {
@@ -457,6 +475,10 @@
                     return;
 
                 instance.i18nTo(lang);
+            },
+            parseDom: function(node)
+            {
+                instance.parseDOMContent(node);
             },
             reload:function()
             {
